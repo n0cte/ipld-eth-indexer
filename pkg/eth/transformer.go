@@ -18,8 +18,9 @@ package eth
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"math/big"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/ethereum/go-ethereum/core/state"
 	node "github.com/ipfs/go-ipld-format"
@@ -264,8 +265,8 @@ func (sdt *StateDiffTransformer) processReceiptsAndTxs(tx *sqlx.Tx, args process
 			Index:      int64(i),
 			Data:       trx.Data(),
 			Deployment: deployment,
-			CID:        rctNode.Cid().String(),
-			MhKey:      shared.MultihashKeyFromCID(rctNode.Cid()),
+			CID:        txNode.Cid().String(),
+			MhKey:      shared.MultihashKeyFromCID(txNode.Cid()),
 		}
 		txID, err := sdt.indexer.indexTransactionCID(tx, txModel, args.headerID)
 		if err != nil {
@@ -280,8 +281,8 @@ func (sdt *StateDiffTransformer) processReceiptsAndTxs(tx *sqlx.Tx, args process
 			Contract:     contract,
 			ContractHash: contractHash,
 			LogContracts: logContracts,
-			CID:          txNode.Cid().String(),
-			MhKey:        shared.MultihashKeyFromCID(txNode.Cid()),
+			CID:          rctNode.Cid().String(),
+			MhKey:        shared.MultihashKeyFromCID(rctNode.Cid()),
 		}
 		if err := sdt.indexer.indexReceiptCID(tx, rctModel, txID); err != nil {
 			return err
