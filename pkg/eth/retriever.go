@@ -25,6 +25,19 @@ import (
 	"github.com/vulcanize/ipld-eth-indexer/pkg/postgres"
 )
 
+const (
+	gapSizeLimit
+	emptyGapsPgStr = `SELECT header_cids.block_number + 1 AS start, min(fr.block_number) - 1 AS stop FROM eth.header_cids
+				LEFT JOIN eth.header_cids r on eth.header_cids.block_number = r.block_number - 1
+				LEFT JOIN eth.header_cids fr on eth.header_cids.block_number < fr.block_number
+				WHERE r.block_number is NULL and fr.block_number IS NOT NULL
+				GROUP BY header_cids.block_number, r.block_number
+				LIMIT `
+	validationGapsPgStr = `SELECT block_number FROM eth.header_cids
+				WHERE times_validated < $1
+				ORDER BY block_number`
+)
+
 // Retriever interface for substituting mocks in tests
 type Retriever interface {
 	RetrieveFirstBlockNumber() (int64, error)
@@ -92,6 +105,7 @@ func (ecr *GapRetriever) RetrieveGapsInData(validationLevel int) ([]DBGap, error
 		return nil, err
 	}
 
+
 	// Find sections of blocks where we are below the validation level
 	// There will be no overlap between these "gaps" and the ones above
 	pgStr = `SELECT block_number FROM eth.header_cids
@@ -102,6 +116,24 @@ func (ecr *GapRetriever) RetrieveGapsInData(validationLevel int) ([]DBGap, error
 		return nil, err
 	}
 	return append(append(initialGap, emptyGaps...), MissingHeightsToGaps(heights)...), nil
+}
+
+
+func (ecr *GapRetriever) retrieveEmptyGaps() ([]DBGap, error) {
+	emptyGaps := make([]DBGap, 0)
+	if err := ecr.db.Select(&emptyGaps, emptyGapsPgStr); err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+}
+
+func (ecr *GapRetriever) retrieveValidationGaps(validationLevel int) ([]DBGap, error) {
+	// Find sections of blocks where we are below the validation level
+	// There will be no overlap between these "gaps" and the ones above
+	var heights []uint64
+	if err := ecr.db.Select(&heights, validationGapsPgStr, validationLevel); err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	return MissingHeightsToGaps(heights), nil
 }
 
 // MissingHeightsToGaps returns a slice of gaps from a slice of missing block heights
