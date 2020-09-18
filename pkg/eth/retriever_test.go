@@ -255,7 +255,7 @@ var _ = Describe("Retriever", func() {
 			Expect(ListContainsGap(gaps, eth.DBGap{Start: 1001, Stop: 1010100})).To(BeTrue())
 		})
 
-		It("Finds validation level gaps", func() {
+		It("Finds validation level gaps first", func() {
 
 			payload1 := mocks.MockConvertedPayload
 			payload1.Block = mockBlock1010101
@@ -321,15 +321,10 @@ var _ = Describe("Retriever", func() {
 
 			gaps, err := retriever.RetrieveGapsInData(1)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(len(gaps)).To(Equal(8))
-			Expect(ListContainsGap(gaps, eth.DBGap{Start: 0, Stop: 0})).To(BeTrue())
-			Expect(ListContainsGap(gaps, eth.DBGap{Start: 2, Stop: 4})).To(BeTrue())
-			Expect(ListContainsGap(gaps, eth.DBGap{Start: 6, Stop: 99})).To(BeTrue())
+			Expect(len(gaps)).To(Equal(3))
 			Expect(ListContainsGap(gaps, eth.DBGap{Start: 101, Stop: 102})).To(BeTrue())
 			Expect(ListContainsGap(gaps, eth.DBGap{Start: 104, Stop: 104})).To(BeTrue())
 			Expect(ListContainsGap(gaps, eth.DBGap{Start: 106, Stop: 108})).To(BeTrue())
-			Expect(ListContainsGap(gaps, eth.DBGap{Start: 110, Stop: 999})).To(BeTrue())
-			Expect(ListContainsGap(gaps, eth.DBGap{Start: 1001, Stop: 1010100})).To(BeTrue())
 		})
 	})
 })

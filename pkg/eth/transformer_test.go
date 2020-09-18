@@ -52,7 +52,7 @@ var _ = Describe("PublishAndIndexer", func() {
 		eth.TearDownDB(db)
 	})
 
-	FDescribe("Publish", func() {
+	Describe("Publish", func() {
 		It("Published and indexes header IPLDs in a single tx", func() {
 			pgStr := `SELECT cid, td, reward, id
 				FROM eth.header_cids
